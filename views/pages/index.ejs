@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <%- include('../partials/head.ejs')%>
+    </head>
+
+    <body>
+        <div class="container">
+            <h1 style="color:blue">Ingrese producto</h1>
+            <form id="form" action="" enctype="application/x-www-form-urlencoded" onsubmit="return addProduct(this)">
+                <div class="form-group">
+                    <label for="title" style="color:black">Nombre: </label>
+                    <input type="text" class="form-control" placeholder="Nombre del producto" name="title" id="title">
+                </div>
+                <div class="form-group">
+                    <label for="price" style="color:black">Precio: </label>
+                    <input type="number" class="form-control" placeholder="Precio del producto" name="price" id="price">
+                </div>
+                <div class="form-group">
+                    <label for="thumbnail" style="color:black">Foto del producto: </label>
+                    <input type="text" class="form-control" placeholder="Link icono del producto" name="thumbnail" id="thumbnail">
+                </div>
+                <input class="btn btn-success" type="submit" value="Enviar">
+            </form>
+
+            <hr>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Precio</th>
+                        <th>Foto</th>
+                    </tr>
+                </thead>
+                <tbody id="products">
+                    <% productos.forEach(function(producto){ %>
+                        <tr>
+                            <th scope="row"> <%= producto.id %> </th>
+                            <td><%= producto.title %></td>
+                            <td><%= producto.price %></td>
+                            <td> <img class=img-thumbnail src="<%= producto.thumbnail %>"></td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            const socket = io();
+            let products = document.getElementById('products');
+            function addProduct(event){
+                let product = {
+                    title: document.getElementById('title').value,
+                    price: document.getElementById('price').value,
+                    thumbnail: document.getElementById('thumbnail').value
+                };
+                socket.emit('new-product', product);
+                return false;
+            }
+            function render(data) {
+                var html = data.map(function(elem, index){
+                    return(`<tr>
+                            <th scope="row">${elem.id}%> </th>
+                            <td>${elem.title}</td>
+                            <td>${elem.price}</td>
+                            <td> <img src="${elem.thumbnail}"></td>
+                        </tr>`)
+                }).join(" ");
+                document.getElementById('products').innerHTML = html;
+            }
+            socket.on('products', function(data) {
+                console.log(data);
+                render(data);
+            })
+            socket.on('mensaje', function(payload) {
+                console.log(payload)
+            })
+        </script>
+    </body>
+</html>
